@@ -1,0 +1,73 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+
+.App-header {
+  background-color: #222;
+  height: 150px;
+  padding: 20px;
+  color: white;
+}
+
+.App-intro {
+  font-size: large;
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.ribbon {
+  overflow: hidden;
+  width: 2500px;
+  position: relative;
+  right: 200px;
+}
+
+.ribbon-title {
+  text-align: left;
+  float: left;
+  font-weight: bold;
+  font-size: larger;
+}
+
+.tile {
+  float: left;
+  width: 250px;
+  height: 230px;
+  margin-top: 10px;
+}
+
+.image-container {
+  width: 213px;
+  position: relative;
+}
+
+.progress-indicator {
+  background-color: orange;
+  height: 2px;
+  bottom: 4px;
+  position: absolute;
+  z-index: 5;
+}
+
+.tile-metadata {
+  text-align: left;
+}
+
+.on-now-div {
+  position: relative;
+  float: right;
+}
+
+.on-now {
+  color: orange;
+}
