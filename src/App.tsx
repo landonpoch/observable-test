@@ -1,26 +1,39 @@
 import * as React from 'react';
 import './App.css';
-import getRibbon, { Tile as ITile } from './csl';
+import getRibbon, { Tile as ITile, Ribbon as IRibbon } from './csl';
 import { map } from 'lodash';
+import { IDisposable } from 'rx';
 
 const logo = require('./logo.svg');
 
 class Tile extends React.Component {
   public props: { tile: ITile };
   public state: { currentProgress: number | undefined; isOnNow: boolean; };
+  private onNowSubscription: IDisposable;
+  private progressSubscription: IDisposable;
   constructor(props: { tile: ITile }) {
     super(props);
+  }
+
+  public componentWillMount() {
     const rightNow = new Date().getTime();
-    const startTime = props.tile.startTime.getTime();
-    const endTime = props.tile.endTime.getTime();
+    const startTime = this.props.tile.startTime.getTime();
+    const endTime = this.props.tile.endTime.getTime();
     const isOnNow = startTime < rightNow && rightNow < endTime;
     const currentProgress = isOnNow ? (rightNow - startTime) / (endTime - startTime) : undefined;
-    this.state = { currentProgress, isOnNow };
-
+    this.setState({ currentProgress, isOnNow });
     // Observables
-    this.props.tile.isOnNow.subscribe(val => { this.setState({ isOnNow: val }); });
-    this.props.tile.currentProgress.subscribe(val => { this.setState({ currentProgress: val }); });
+    this.onNowSubscription = this.props.tile.isOnNow
+      .subscribe(val => { this.setState({ isOnNow: val }); });
+    this.progressSubscription = this.props.tile.currentProgress
+      .subscribe(val => { this.setState({ currentProgress: val }); });
   }
+
+  public componentWillUnmount() {
+    this.onNowSubscription.dispose();
+    this.progressSubscription.dispose();
+  }
+
   render() {
     return (
       <div className="tile">
@@ -45,14 +58,23 @@ class Tile extends React.Component {
 
 class Ribbon extends React.Component {
   public state: { title: string, tiles: ITile[] };
+  private ribbon: IRibbon;
+  private tilesSubscription: IDisposable;
   constructor(props: {}) {
     super(props);
-    const ribbon = getRibbon();
-    this.state = { title: ribbon.title, tiles: ribbon.initialTiles };
-
-    // Observable
-    ribbon.tiles.subscribe(val => { this.setState({ tiles: val }); });
+    this.ribbon = getRibbon();
   }
+
+  public componentWillMount() {
+    this.setState({ title: this.ribbon.title });
+    // Observable
+    this.tilesSubscription = this.ribbon.tiles.subscribe(val => { this.setState({ tiles: val }); });
+  }
+
+  public componentWillUnmount() {
+    this.tilesSubscription.dispose();
+  }
+
   render() {
     return (
       <div>
@@ -69,7 +91,7 @@ class App extends React.Component {
       <div className="App">
         <div className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to a rediculous demo of observables</h2>
+          <h2>Observables Demo</h2>
         </div>
         <div className="App-intro">
           <Ribbon />

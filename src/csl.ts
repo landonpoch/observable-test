@@ -14,8 +14,14 @@ export interface Tile {
 export interface Ribbon {
     title: string;
     tiles: Observable<Tile[]>;
-    // This is probably not necessary, but react is somehow missing the startWith value the observable provides
-    initialTiles: Tile[];
+}
+
+export default function getRibbon(): Ribbon {
+    const tiles = getTiles();
+    return {
+        title: 'Sample Kids Shows',
+        tiles: tilesObservable(tiles)
+    };
 }
 
 const TenSeconds = 10000;    
@@ -41,22 +47,27 @@ function getTiles (): Tile[] {
     });
 }
 
-export default function getRibbon(): Ribbon {
-    const tiles = getTiles();
-    return {
-        title: 'Annoying Kids Shows',
-        initialTiles: take(tiles, 10),
-        tiles: tilesObservable(tiles)
-    };
+// Observable Functions
+function tilesObservable(tiles: Tile[]): Observable<Tile[]> {
+    return Observable
+        .interval(TenSeconds)
+        .delay(10)
+        .map(() => {
+            const rightNow = new Date().getTime();
+            const onNowIndex = findIndex(tiles, t =>
+                t.startTime.getTime() <= rightNow && rightNow < t.endTime.getTime());
+            return take(slice(tiles, onNowIndex - 1), 10);
+        })
+        .startWith(take(tiles, 10));
 }
 
-// Observable Functions
 function onNowObservable(startTime: Date, endTime: Date): Observable<boolean> {
     return Observable
         .interval(TenSeconds)
+        .delay(10)
         .map(() => {
             const rightNow = new Date().getTime();
-            return startTime.getTime() < rightNow && rightNow < endTime.getTime();
+            return startTime.getTime() <= rightNow && rightNow < endTime.getTime();
         });
 }
 
@@ -65,20 +76,9 @@ function currentProgressObservable(startTime: Date, endTime: Date): Observable<n
         .interval(50)
         .map(() => {
             const rightNow = new Date().getTime();
-            return startTime.getTime() < rightNow && rightNow < endTime.getTime()
-                ? (rightNow - startTime.getTime()) / TenSeconds
+            const numericStartTime = startTime.getTime();
+            return numericStartTime <= rightNow && rightNow < endTime.getTime()
+                ? (rightNow - numericStartTime) / TenSeconds
                 : undefined;
         });
-}
-
-function tilesObservable(tiles: Tile[]): Observable<Tile[]> {
-    return Observable
-        .interval(TenSeconds)
-        .map(() => {
-            const rightNow = new Date().getTime();
-            const onNowIndex = findIndex(tiles, t =>
-                t.startTime.getTime() < rightNow && rightNow < t.endTime.getTime());
-            return take(slice(tiles, onNowIndex - 1), 10);
-        })
-        .startWith(tiles);
 }
