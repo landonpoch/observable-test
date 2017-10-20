@@ -1,6 +1,11 @@
 import { Observable } from 'rx';
 import { map, times, findIndex, slice, take } from 'lodash';
 
+export interface Ribbon {
+    title: string;
+    tiles: Observable<Tile[]>;
+}
+
 export interface Tile {
     id: number;
     title: string;
@@ -11,11 +16,6 @@ export interface Tile {
     currentProgress: Observable<number | undefined>;
 }
 
-export interface Ribbon {
-    title: string;
-    tiles: Observable<Tile[]>;
-}
-
 export default function getRibbon(): Ribbon {
     const tiles = getTiles();
     return {
@@ -24,8 +24,7 @@ export default function getRibbon(): Ribbon {
     };
 }
 
-const TenSeconds = 10000;    
-
+const TenSeconds = 10000;
 function getTiles (): Tile[] {
     const tenSecondsAgo = new Date(new Date().getTime() - TenSeconds);
     const startTimes = times(30, i => new Date(tenSecondsAgo.getTime() + (i * TenSeconds)));

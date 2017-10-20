@@ -9,8 +9,8 @@ const logo = require('./logo.svg');
 class Tile extends React.Component {
   public props: { tile: ITile };
   public state: { currentProgress: number | undefined; isOnNow: boolean; };
-  private onNowSubscription: IDisposable;
-  private progressSubscription: IDisposable;
+  private onNowSub: IDisposable;
+  private progressSub: IDisposable;
   constructor(props: { tile: ITile }) {
     super(props);
   }
@@ -22,16 +22,15 @@ class Tile extends React.Component {
     const isOnNow = startTime < rightNow && rightNow < endTime;
     const currentProgress = isOnNow ? (rightNow - startTime) / (endTime - startTime) : undefined;
     this.setState({ currentProgress, isOnNow });
+    
     // Observables
-    this.onNowSubscription = this.props.tile.isOnNow
-      .subscribe(val => { this.setState({ isOnNow: val }); });
-    this.progressSubscription = this.props.tile.currentProgress
-      .subscribe(val => { this.setState({ currentProgress: val }); });
+    this.onNowSub = this.props.tile.isOnNow.subscribe(val => { this.setState({ isOnNow: val }); });
+    this.progressSub = this.props.tile.currentProgress.subscribe(val => { this.setState({ currentProgress: val }); });
   }
 
   public componentWillUnmount() {
-    this.onNowSubscription.dispose();
-    this.progressSubscription.dispose();
+    this.onNowSub.dispose();
+    this.progressSub.dispose();
   }
 
   render() {
@@ -59,7 +58,7 @@ class Tile extends React.Component {
 class Ribbon extends React.Component {
   public state: { title: string, tiles: ITile[] };
   private ribbon: IRibbon;
-  private tilesSubscription: IDisposable;
+  private tilesSub: IDisposable;
   constructor(props: {}) {
     super(props);
     this.ribbon = getRibbon();
@@ -67,12 +66,13 @@ class Ribbon extends React.Component {
 
   public componentWillMount() {
     this.setState({ title: this.ribbon.title });
+    
     // Observable
-    this.tilesSubscription = this.ribbon.tiles.subscribe(val => { this.setState({ tiles: val }); });
+    this.tilesSub = this.ribbon.tiles.subscribe(val => { this.setState({ tiles: val }); });
   }
 
   public componentWillUnmount() {
-    this.tilesSubscription.dispose();
+    this.tilesSub.dispose();
   }
 
   render() {
